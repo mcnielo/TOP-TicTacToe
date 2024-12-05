@@ -1,3 +1,14 @@
+const gameStatus = document.getElementById("gameInfo");
+const cells = document.querySelectorAll(".cell");
+const xButton = document.getElementById("player1");
+const oButton = document.getElementById("player2");
+const boardGlow = document.querySelector(".board");
+
+const symbolImages = {
+  X: "assets/pixelart-x.png", // Replace with the actual path to your "X" image
+  O: "assets/pixilart-0.png", // Replace with the actual path to your "O" image
+};
+
 // Player Factory
 const Player = (name, symbol) => {
   return { name, symbol };
@@ -16,9 +27,8 @@ const gameBoard = (() => {
     let boardCol = index % 3;
     if (board[boardRow][boardCol] === "") {
       board[boardRow][boardCol] = player;
-      console.log("success!");
     } else {
-      console.log("Spot is already taken! Pick another spot.");
+      gameStatus.textContent = "Spot is already taken! Pick another spot.";
     }
   };
 
@@ -31,7 +41,7 @@ const gameBoard = (() => {
     console.log("Board has been reset:", board);
   };
 
-  const checkWinner = () => {
+  const checkWinner = (players) => {
     const flatBoard = board.flat();
 
     const winningCombo = [
@@ -51,16 +61,14 @@ const gameBoard = (() => {
         flatBoard[a] === flatBoard[b] &&
         flatBoard[a] === flatBoard[c]
       ) {
-        console.log(`winner is ${flatBoard[a]}`);
-        return flatBoard[a];
+        const winner = players.find((player) => player.symbol === flatBoard[a]);
+        return winner.symbol;
       }
     }
 
     if (flatBoard.every((cell) => cell !== "")) {
-      console.log("It's a TIE!");
       return "Tie";
     }
-    console.log("No winner yet!");
     return null;
   };
 
@@ -77,26 +85,28 @@ const gameController = (() => {
     players = [player1, player2];
     currentPlayer = players[0];
     gameOver = false;
-    console.log(`${currentPlayer.name}'s turn`);
+    gameStatus.textContent = `${currentPlayer.name}'s turn`;
   };
 
   const switchPlayer = () => {
     if (gameOver) return;
     currentPlayer = currentPlayer == players[0] ? players[1] : players[0];
-    console.log(`${currentPlayer.name}'s turn`);
+    if (currentPlayer.symbol == "X") {
+      boardGlow.style.boxShadow = "10px 10px 100px #74C19B";
+    } else {
+      boardGlow.style.boxShadow = "10px 10px 100px #F65403";
+    }
+    gameStatus.textContent = `${currentPlayer.symbol}'s turn`;
   };
 
   const makeMove = (index) => {
     if (gameOver) return;
     gameBoard.markSpot(index, currentPlayer.symbol);
-    const winner = gameBoard.checkWinner();
+    const winner = gameBoard.checkWinner(players);
 
-    if (winner) {
+    if (winner && winner !== "Tie") {
       gameOver = true;
-      console.log(`${winner} wins!`);
-    } else if (winner == "Tie") {
-      gameOver = true;
-      console.log("It's a tie!");
+      gameStatus.textContent = `${winner} wins!`;
     } else {
       switchPlayer();
     }
@@ -105,33 +115,65 @@ const gameController = (() => {
   const resetGame = () => {
     gameBoard.resetBoard();
     gameOver = false;
-    console.log("Game has been reset!");
+    boardGlow.style.boxShadow = "10px 10px 1000px #949627";
+    cells.forEach((cell) => {
+      cell.textContent = "";
+      cell.classList.remove("taken");
+    });
+    gameStatus.textContent = "Choose your symbol";
   };
 
   return { startGame, makeMove, resetGame };
 })();
 
 // Create players
-const player1 = Player("Alice", "X");
-const player2 = Player("Bob", "O");
+xButton.addEventListener("click", () => {
+  const player1 = Player("Player 1", "X");
+  const player2 = Player("Player 2", "O");
 
-// Start a new game
-gameController.startGame(player1, player2);
+  gameController.resetGame();
+  boardGlow.style.boxShadow = "10px 10px 100px #74C19B";
+  gameController.startGame(player1, player2);
+});
+oButton.addEventListener("click", () => {
+  const player1 = Player("Player 1", "O");
+  const player2 = Player("Player 2", "X");
+  gameController.resetGame();
+  boardGlow.style.boxShadow = "10px 10px 100px #F65403";
+  gameController.startGame(player1, player2);
+});
 
-// Print the board after starting the game
-console.log("Game started:");
-console.log(gameBoard.board); // Logs the board array
+// // Start a new game
+// const startButton = document.getElementById("start");
+// startButton.addEventListener("click", () => {});
 
-// Players take turns
-gameController.makeMove(0); // Player 1 (X) moves at index 0
-console.log("After Player 1's move:");
-console.log(gameBoard.board.map((row) => [...row])); // Logs the board snapshot
+cells.forEach((cell) => {
+  cell.addEventListener("click", (e) => {
+    const cellIndex = e.target.dataset.index;
 
-gameController.makeMove(1); // Player 2 (O) moves at index 1
-console.log("After Player 2's move:");
-console.log(gameBoard.board.map((row) => [...row])); // Logs the board snapshot
+    // Prevent duplicate moves in a cell
+    if (!e.target.querySelector("img") && !gameController.gameOver) {
+      // Make the move
+      gameController.makeMove(cellIndex);
 
-// Reset the game
-gameController.resetGame();
-console.log("Game has been reset:");
-console.log(gameBoard.board.map((row) => [...row])); // Logs the reset board
+      // Get the current symbol for the player
+      const currentSymbol =
+        gameBoard.board[Math.floor(cellIndex / 3)][cellIndex % 3];
+
+      // Create and add the image to the cell
+      const img = document.createElement("img");
+      img.src = symbolImages[currentSymbol];
+      img.alt = currentSymbol;
+      img.classList.add("player-symbol"); // Add a class for styling if needed
+      e.target.appendChild(img);
+
+      // Add a "taken" class to visually disable the cell
+      e.target.classList.add("taken");
+    }
+  });
+});
+
+const restartButton = document.getElementById("reset");
+restartButton.addEventListener("click", () => {
+  gameController.resetGame();
+});
