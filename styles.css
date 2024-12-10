@@ -1,4 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap');4
+@import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
 
 * {
   margin: 0;
@@ -97,4 +98,60 @@ body {
   justify-content: center;
   align-items: center;
   margin: 50px;
+}
+
+.buttonContainer {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-content: center;
+}
+
+.pixel {
+  font-size: 1em;
+  font-family: "Press Start 2P", "Pixelify Sans";
+  width: 100px;
+  height: 30px;
+  background: yellow;
+  border: 0px;
+  position: relative;
+  box-shadow: 
+    inset -4px 2px 1px 1px grey,
+    inset -4px -2px 1px 1px lightgray,
+    inset 4px 0px 1px 1px lightgray;   
+}
+
+.pixel:hover {
+  cursor: pointer;
+	background-color: rgb(221, 221, 2);
+}
+
+.pixel:active {
+  top: 5px;
+  box-shadow: 
+    -4px 2px 1px 1px grey,
+    -4px -2px 1px 1px lightgray,
+    4px 0px 1px 1px lightgray; 
+}
+
+.pixel::after {
+  content: '';
+  background: black;
+  position: absolute;
+  left: -2.5%;
+  top: 0;
+  width: 105%;
+  height: 100%;
+  z-index: -1;
+}
+
+.pixel::before {
+  content: '';
+  background: black;
+  position: absolute;
+  left: 0;
+  top: -5%;
+  width: 100%;
+  height: 113%;
+  z-index: -1;
 }
